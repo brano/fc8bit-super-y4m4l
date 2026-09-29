@@ -6,6 +6,10 @@ blaugrana-striped number 10 who collects footballs instead of coins, stomps
 beat **THE SPECIAL ONE** and lift the Champions trophy — the Big Ears — with
 **H4NSI** waiting beside it.
 
+![Title screen: the FC8BIT SUPER Y4M4L logo over a blaugrana stand, with Y4M4L10, a Merengue mushroom, THE SPECIAL ONE, H4NSI FL1CK and the Champions trophy on the pitch](docs/title-screen.png)
+
+![Victory screen: Y4M4L10 on the podium lifting the Champions trophy under falling confetti, H4NSI beside him, final score tallied above](docs/victory.png)
+
 > A fan project, built for learning and for fun. Not for profit, not affiliated
 > with any club, and no football rights are owned here — please read the
 > [Disclaimer](#disclaimer).
