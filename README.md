@@ -6,14 +6,18 @@ blaugrana-striped number 10 who collects footballs instead of coins, stomps
 beat **THE SPECIAL ONE** and lift the Champions trophy — the Big Ears — with
 **H4NSI** waiting beside it.
 
+> A fan project, built for learning and for fun. Not for profit, not affiliated
+> with any club, and no football rights are owned here — please read the
+> [Disclaimer](#disclaimer).
+
 Built with **Phaser 3.90** (vendored, so it runs offline). Y4M4L10, the Merengue
 mushrooms, MB4PPE, THE SPECIAL ONE, H4NSI FL1CK, the Champions cup, the senyera
 flags, the *Més Que Un Club* pennant and the stadium board all come from the
 supplied reference art in `assets/source/`; everything else — tiles, stadium,
-crowd, items, HUD font and all audio — is generated procedurally at boot. The one recorded asset is the 8-bit anthem in
-`assets/audio/`; every other sound is synthesised. The game still runs with
-`assets/` deleted — it falls back to the procedural sprites and the synth
-soundtrack.
+crowd, items, HUD font and most audio — is generated procedurally at boot. The
+one recorded asset is the 8-bit anthem in `assets/audio/`; every other sound is
+synthesised. The game still runs with `assets/` deleted — it falls back to the
+procedural sprites and the synth soundtrack.
 
 ## Play
 
@@ -241,9 +245,33 @@ Two things to know if you touch this:
 - This Phaser build ignores `setMute()` and `setVolume()` on that sound — both
   setters exist and do nothing observable — so muting pauses it instead.
 
+## Disclaimer
+
+**I do not own any of the football rights used here.** The FC Barcelona crest,
+the club colours and kits, the *Més Que Un Club* motto, the club anthem, the
+Real Madrid crest, the Champions League trophy and the likenesses of real
+players and coaches are the property of their respective owners. None of it is
+licensed to me, and no claim of ownership or affiliation is made or implied.
+
+The gameplay is openly **inspired by Super Mario Bros.**, which belongs to
+Nintendo. Y4M4L10's song comes from a MIDI of *Y QUE FUE* by Don Miguelo. This
+project is not endorsed by, associated with, or approved by FC Barcelona, Real
+Madrid, UEFA, Nintendo, or any of the people it caricatures.
+
+It was built **for learning and for fun** — as an exercise in writing a game
+engine, procedural pixel art and an asset pipeline. It is **not for profit**:
+nothing here is sold, monetised or advertised, and it is not intended for
+commercial use or public distribution.
+
+It is also meant with **affection, not mockery**. The rival characters are
+light-hearted football caricatures in the spirit of terrace banter — no insult
+to any club, player or coach is intended.
+
+If you own any of the material used here and would like it removed, please open
+an issue and it will be taken down.
+
 ## Notes
 
-This is an affectionate parody, made for personal use. The supplied reference art
-carries club-style crests and kit colours, so treat the build as a private project
-rather than something to publish or sell. The procedurally generated half of the
-art uses no badges or trademarks.
+Keep this build private rather than publishing or selling it. The half of the
+art that is generated procedurally by the code uses no badges or trademarks; the
+material in `assets/source/` and `assets/audio/` is the part that is not mine.
