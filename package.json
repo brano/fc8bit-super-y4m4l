@@ -1,0 +1,20 @@
+{
+  "name": "fc8bit-super-y4m4l",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FC8Bit Super Y4M4L - an 8-bit football platformer built with Phaser 3.",
+  "scripts": {
+    "start": "npx --yes http-server . -p 5199 -c-1 -o",
+    "dev": "npx --yes http-server . -p 5199 -c-1 -o",
+    "api": "dotnet run --project server --urls http://localhost:5090",
+    "api:build": "dotnet build server"
+  },
+  "keywords": [
+    "game",
+    "phaser",
+    "platformer",
+    "8-bit",
+    "football"
+  ],
+  "license": "MIT"
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0b0714">
+<meta name="description" content="FC8Bit Super Y4M4L - an 8-bit football platformer. Collect balls, stomp the Merengue mushrooms, beat THE SPECIAL ONE and lift the Big Ears.">
+<title>FC8Bit Super Y4M4L</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="shell">
+    <header id="chrome">
+      <h1><span class="blau">FC8BIT</span> <span class="gold">SUPER Y4M4L</span></h1>
+      <button id="fullscreen" type="button">FULLSCREEN</button>
+    </header>
+
+    <div id="stage">
+      <div id="game"></div>
+    </div>
+
+    <footer id="hints">
+      <span><b>MOVE</b> &larr; &rarr; / A D</span>
+      <span><b>JUMP</b> SPACE / &uarr;</span>
+      <span><b>SPRINT</b> SHIFT</span>
+      <span><b>SHOOT</b> X</span>
+      <span><b>PAUSE</b> P</span>
+      <span><b>MUTE</b> M</span>
+    </footer>
+
+    <div id="fallback">
+      <h2>Phaser failed to load</h2>
+      <p>The bundled engine at <code>vendor/phaser.min.js</code> could not be found.
+      Serve the folder over HTTP (<code>npm start</code>) and reload.</p>
+    </div>
+  </div>
+
+  <script src="vendor/phaser.min.js"></script>
+  <script src="src/font.js"></script>
+  <script src="src/art.js"></script>
+  <script src="src/tiles.js"></script>
+  <script src="src/audio.js"></script>
+  <script src="src/scores.js"></script>
+  <script src="src/levels.js"></script>
+  <script src="src/entities.js"></script>
+  <script src="src/scene-menus.js"></script>
+  <script src="src/scene-boot.js"></script>
+  <script src="src/scene-game.js"></script>
+  <script src="src/main.js"></script>
+</body>
+</html>

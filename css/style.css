@@ -1,0 +1,226 @@
+/* FC8Bit Super Y4M4L - page chrome around the canvas. */
+:root {
+  --blau: #004d98;
+  --grana: #a50044;
+  --gold: #edbb00;
+  --ink: #0b0714;
+  --ink-2: #140d24;
+  --line: #2a2140;
+  --text: #e8e6f2;
+  --muted: #8e87ad;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--ink);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #241a44 0%, transparent 60%),
+    linear-gradient(180deg, #0d0918 0%, #07040f 100%);
+}
+
+#shell {
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 14px;
+}
+
+#chrome {
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+#chrome h1 {
+  margin: 0;
+  font-size: 15px;
+  letter-spacing: 3px;
+  font-weight: 700;
+}
+
+.blau {
+  background: linear-gradient(90deg, var(--blau) 50%, var(--grana) 50%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gold { color: var(--gold); }
+
+#fullscreen {
+  background: var(--ink-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+
+#fullscreen:hover { border-color: var(--gold); color: var(--gold); }
+
+#stage {
+  width: 100%;
+  max-width: 1400px;
+  flex: 1 1 auto;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+#game {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#game canvas {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border: 2px solid var(--line);
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.8),
+    0 18px 60px rgba(0, 0, 0, 0.75),
+    0 0 90px rgba(165, 0, 68, 0.18);
+  background: #07040f;
+}
+
+#hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  justify-content: center;
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  color: var(--muted);
+}
+
+#hints b { color: var(--gold); font-weight: 600; }
+
+#fallback {
+  display: none;
+  max-width: 520px;
+  border: 1px solid var(--grana);
+  background: #1a0b16;
+  padding: 14px 16px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+#fallback h2 { margin: 0 0 6px; font-size: 13px; color: var(--grana); }
+#fallback code { color: var(--gold); }
+
+:fullscreen #chrome, :fullscreen #hints { display: none; }
+:fullscreen #shell { padding: 0; }
+:fullscreen #game canvas { border: none; border-radius: 0; box-shadow: none; }
+
+@media (max-width: 720px) {
+  #chrome h1 { font-size: 12px; letter-spacing: 2px; }
+  #hints { display: none; }
+  #shell { padding: 6px; gap: 6px; }
+}
+
+/* ---------------------------------------------- scoreboard name entry */
+.fc8-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(7, 4, 15, 0.78);
+  z-index: 50;
+}
+
+.fc8-card {
+  background: var(--ink-2);
+  border: 2px solid var(--gold);
+  border-radius: 4px;
+  padding: 18px 20px;
+  width: min(92vw, 340px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.7);
+}
+
+.fc8-card h2 {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: var(--gold);
+}
+
+.fc8-card p {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.fc8-card input {
+  font: inherit;
+  font-size: 15px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  padding: 9px 10px;
+  color: var(--text);
+  background: #090613;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+
+.fc8-card input:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+.fc8-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.fc8-actions button {
+  flex: 1;
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 2px;
+  padding: 9px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: #090613;
+  color: var(--text);
+}
+
+.fc8-actions .fc8-go {
+  background: var(--grana);
+  border-color: var(--grana);
+  color: #fff;
+}
+
+.fc8-actions button:hover { border-color: var(--gold); }
