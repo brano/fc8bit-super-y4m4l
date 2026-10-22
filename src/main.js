@@ -39,12 +39,17 @@ window.FC8 = window.FC8 || {};
 
   FC8.game = new Phaser.Game(config);
 
-  // Keep the page still while playing and unlock audio on the first gesture.
-  window.addEventListener('keydown', function (e) {
-    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Space'].indexOf(e.key) !== -1) {
-      e.preventDefault();
-    }
-  }, { passive: false });
+  // Stop the arrows and space from scrolling the page -- but let PHASER do it.
+  //
+  // Do not preventDefault these in our own listener: Phaser's key handler
+  // begins `if (!event.defaultPrevented)`, and because this file registers on
+  // window before Phaser's manager attaches, ours ran first and every arrow
+  // and space keydown was dropped before the game ever saw it. The keyups
+  // still arrived, so the keys looked dead while WASD worked fine.
+  FC8.game.events.once('ready', function () {
+    var kb = FC8.game.input && FC8.game.input.keyboard;
+    if (kb && kb.addCapture) kb.addCapture([37, 38, 39, 40, 32]);  // arrows + space
+  });
 
   function unlock() { FC8.audio.unlock(); }
   window.addEventListener('pointerdown', unlock, { once: true });
