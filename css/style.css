@@ -30,8 +30,11 @@ body {
 }
 
 #shell {
-  height: 100vh;
-  height: 100dvh;
+  /* min-height, not height: on a short window the disclaimer footer would
+     otherwise compress the stage and leave the game a few hundred pixels
+     wide. Let the page scroll instead and keep the canvas usable. */
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -82,16 +85,23 @@ body {
   width: 100%;
   max-width: 1400px;
   flex: 1 1 auto;
-  height: 100%;
+  /* Floor so the disclaimer footer cannot squeeze the game on a short window;
+     the page scrolls instead. */
+  min-height: min(56vh, 300px);
   display: flex;
-  align-items: center;
+  /* stretch, not center: #game must fill this box so Phaser's FIT has a real
+     height to measure. With align-items:center it collapses to the canvas's
+     own size and the canvas can then never grow again. */
+  align-items: stretch;
   justify-content: center;
-  min-height: 0;
 }
 
 #game {
-  width: 100%;
-  height: 100%;
+  flex: 1 1 auto;
+  /* flex items default to min-width/min-height:auto, which refuses to shrink
+     below the canvas's own size and pushes it off-screen on a phone. */
+  min-width: 0;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -135,14 +145,38 @@ body {
 #fallback h2 { margin: 0 0 6px; font-size: 13px; color: var(--grana); }
 #fallback code { color: var(--gold); }
 
-:fullscreen #chrome, :fullscreen #hints { display: none; }
+:fullscreen #chrome, :fullscreen #hints, :fullscreen #about { display: none; }
 :fullscreen #shell { padding: 0; }
 :fullscreen #game canvas { border: none; border-radius: 0; box-shadow: none; }
+
+#about {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+#about p { margin: 0 0 5px; }
+#about strong { color: #b4acd0; font-weight: 600; }
+#about em { color: #b4acd0; font-style: normal; }
+
+#about a {
+  color: var(--gold);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--gold);
+}
+
+#about a:hover { color: #fff; border-bottom-color: #fff; }
 
 @media (max-width: 720px) {
   #chrome h1 { font-size: 12px; letter-spacing: 2px; }
   #hints { display: none; }
   #shell { padding: 6px; gap: 6px; }
+  #about { font-size: 9px; line-height: 1.6; }
 }
 
 /* ---------------------------------------------- scoreboard name entry */
