@@ -115,6 +115,15 @@ hand-drawn one in `src/art.js` as the fallback. Its eye is four source pixels
 wide, so at a fifth of the size it averages into the outline and the face goes
 blank — `build_face()` puts the eye back after the downscale.
 
+The favicon is the same head, but it is **drawn** rather than downscaled —
+`ICON_GRID` in the pipeline, 16x16, palette sampled from the same reference.
+At 16px the reduction that just about carries the HUD portrait falls apart:
+the gold tips average into the hair and the single narrow eye disappears. A
+favicon is looked at on its own, so it gets placed by hand and then scaled to
+32/48/180 by whole-number nearest-neighbour steps, which keeps every pixel
+hard. Pillow resamples ICO frames with LANCZOS unless handed exact-size
+images, hence the `append_images` call.
+
 ## Pickups
 
 | Item | Effect |
@@ -130,6 +139,7 @@ Stomp several enemies without landing for a combo: 100 → 200 → 400 → 800 �
 
 ```
 index.html          script tags, no bundler
+favicon.ico         Y4M4L10's head, 16/32/48 (tools/build_assets.py)
 css/style.css       page chrome around the canvas
 vendor/phaser.min.js
 assets/source/      the supplied reference art (kept as the master)

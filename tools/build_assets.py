@@ -562,6 +562,89 @@ def build_face(height=17):
     return face
 
 
+ICON_BG = (0x0b, 0x07, 0x14, 255)      # --ink, the page background
+
+# Y4M4L10's head at 16x16, placed by hand off assets/source/17.png.
+#
+# Everything else in this file is a downscale of the reference, but the head
+# will not survive one at this size: it is a dark curly mass with a single
+# narrow eye, and both the box average and a modal reduction turn the gold
+# highlights into brown mud (the 18px HUD portrait from build_face has the
+# same problem - it gets away with it because nothing looks at it directly).
+# A favicon is looked at directly, in isolation, at 16px, so it is drawn
+# instead: same palette sampled from the reference, same three-quarter pose
+# looking right, gold crown read as a band rather than as speckle.
+#
+#   .  transparent   K  navy outline   D  hair shadow   H  hair
+#   G  gold tips     S  skin           s  skin shadow   W/P  eye
+ICON_PALETTE = {
+    '.': None,
+    'K': (0x04, 0x12, 0x29), 'D': (0x17, 0x07, 0x05), 'H': (0x3e, 0x1c, 0x11),
+    'G': (0xdd, 0xa9, 0x45), 'S': (0xc7, 0x6f, 0x3f), 's': (0x98, 0x52, 0x2c),
+    'W': (0xff, 0xff, 0xff), 'P': (0x06, 0x02, 0x04),
+}
+
+ICON_GRID = [
+    '......KKKK......',
+    '....KKGGGGKK....',
+    '...KGGGGGGGGK...',
+    '..KHGGHGGHGGHK..',
+    '..KHHGHHGHHHHK..',
+    '.KDDHHHHHHHHHDK.',
+    '.KDDDHHHHHHHSSK.',
+    '.KDDDHHSSSSSSSK.',
+    '.KDDsSSSPPPSSSK.',
+    '.KDDsSSSWPPSSSK.',
+    '..KsSSSSSSSSSK..',
+    '..KsSSSSSSSSSK..',
+    '...KSSSSSSSSK...',
+    '....KSSSSSSK....',
+    '.....KKKKKK.....',
+    '................',
+]
+
+
+def build_favicon():
+    """The page icon: one 16x16 master, then integer NEAREST upscales.
+
+    Nearest and whole multiples throughout. Any other filter puts soft grey
+    between the pixels, which is the one thing an 8-bit icon must not have,
+    and Pillow's ICO writer resamples with LANCZOS unless it is handed a
+    frame whose size already matches exactly - hence append_images.
+    """
+    master = len(ICON_GRID)
+    icon = Image.new('RGBA', (master, master), (0, 0, 0, 0))
+    px = icon.load()
+    for y, row in enumerate(ICON_GRID):
+        for x, ch in enumerate(row):
+            rgb = ICON_PALETTE[ch]
+            if rgb:
+                px[x, y] = rgb + (255,)
+
+    def up(n):
+        return icon.resize((master * n, master * n), Image.NEAREST)
+
+    icon.save(os.path.join(OUT, 'favicon-16.png'))
+    up(2).save(os.path.join(OUT, 'favicon-32.png'))
+
+    # Largest first: Pillow skips any requested size bigger than the base.
+    up(3).save(os.path.join(ROOT, 'favicon.ico'), format='ICO',
+               sizes=[(16, 16), (32, 32), (48, 48)],
+               append_images=[up(2), icon])
+
+    # iOS ignores the alpha and composites on black, so this one is flattened
+    # onto the page background. 176 = 16 x 11, centred in the 180 Apple asks
+    # for, so the upscale stays on whole pixels.
+    touch = Image.new('RGBA', (180, 180), ICON_BG)
+    big = up(11)
+    touch.paste(big, (2, 2), big)
+    touch.save(os.path.join(OUT, 'apple-touch-icon.png'))
+
+    print('favicon     -> %dx%d master, ico 16/32/48, touch 180'
+          % (master, master))
+    return icon
+
+
 def build_props():
     """Club furniture: the cup, the senyera flag, the pennant, the board."""
     trophy = lift(load('8.png'), (8, 158, 283, 442), 32, colors=12, blob='keep', drop_green=True)
@@ -713,4 +796,5 @@ if __name__ == '__main__':
     build_coaches()
     build_props()
     build_face()
+    build_favicon()
     print('done')
