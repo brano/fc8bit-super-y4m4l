@@ -562,87 +562,34 @@ def build_face(height=17):
     return face
 
 
-ICON_BG = (0x0b, 0x07, 0x14, 255)      # --ink, the page background
-
-# Y4M4L10's head at 16x16, placed by hand off assets/source/17.png.
-#
-# Everything else in this file is a downscale of the reference, but the head
-# will not survive one at this size: it is a dark curly mass with a single
-# narrow eye, and both the box average and a modal reduction turn the gold
-# highlights into brown mud (the 18px HUD portrait from build_face has the
-# same problem - it gets away with it because nothing looks at it directly).
-# A favicon is looked at directly, in isolation, at 16px, so it is drawn
-# instead: same palette sampled from the reference, same three-quarter pose
-# looking right, gold crown read as a band rather than as speckle.
-#
-#   .  transparent   K  navy outline   D  hair shadow   H  hair
-#   G  gold tips     S  skin           s  skin shadow   W/P  eye
-ICON_PALETTE = {
-    '.': None,
-    'K': (0x04, 0x12, 0x29), 'D': (0x17, 0x07, 0x05), 'H': (0x3e, 0x1c, 0x11),
-    'G': (0xdd, 0xa9, 0x45), 'S': (0xc7, 0x6f, 0x3f), 's': (0x98, 0x52, 0x2c),
-    'W': (0xff, 0xff, 0xff), 'P': (0x06, 0x02, 0x04),
-}
-
-ICON_GRID = [
-    '......KKKK......',
-    '....KKGGGGKK....',
-    '...KGGGGGGGGK...',
-    '..KHGGHGGHGGHK..',
-    '..KHHGHHGHHHHK..',
-    '.KDDHHHHHHHHHDK.',
-    '.KDDDHHHHHHHSSK.',
-    '.KDDDHHSSSSSSSK.',
-    '.KDDsSSSPPPSSSK.',
-    '.KDDsSSSWPPSSSK.',
-    '..KsSSSSSSSSSK..',
-    '..KsSSSSSSSSSK..',
-    '...KSSSSSSSSK...',
-    '....KSSSSSSK....',
-    '.....KKKKKK.....',
-    '................',
-]
+FAVICON = 'favicon.ico'                # hand-supplied master, not generated
 
 
 def build_favicon():
-    """The page icon: one 16x16 master, then integer NEAREST upscales.
+    """Derive the iOS home-screen icon from the supplied favicon.
 
-    Nearest and whole multiples throughout. Any other filter puts soft grey
-    between the pixels, which is the one thing an 8-bit icon must not have,
-    and Pillow's ICO writer resamples with LANCZOS unless it is handed a
-    frame whose size already matches exactly - hence append_images.
+    favicon.ico is one of the few assets here that is NOT built from
+    assets/source/ - it was drawn outside this pipeline, so it is the master
+    and this function only resizes it. An earlier version generated the icon
+    from a hand-placed 16x16 grid; the supplied one replaced it.
+
+    Apple asks for 180x180. 16 x 11 = 176, centred, so the upscale lands on
+    whole pixels: NEAREST at a whole multiple keeps the pixel edges hard,
+    where LANCZOS turns a 16px source into a smear. The source is already
+    opaque, so there is nothing to flatten.
     """
-    master = len(ICON_GRID)
-    icon = Image.new('RGBA', (master, master), (0, 0, 0, 0))
-    px = icon.load()
-    for y, row in enumerate(ICON_GRID):
-        for x, ch in enumerate(row):
-            rgb = ICON_PALETTE[ch]
-            if rgb:
-                px[x, y] = rgb + (255,)
+    icon = Image.open(os.path.join(ROOT, FAVICON)).convert('RGBA')
+    w, h = icon.size
+    n = 176 // max(w, h)
 
-    def up(n):
-        return icon.resize((master * n, master * n), Image.NEAREST)
-
-    icon.save(os.path.join(OUT, 'favicon-16.png'))
-    up(2).save(os.path.join(OUT, 'favicon-32.png'))
-
-    # Largest first: Pillow skips any requested size bigger than the base.
-    up(3).save(os.path.join(ROOT, 'favicon.ico'), format='ICO',
-               sizes=[(16, 16), (32, 32), (48, 48)],
-               append_images=[up(2), icon])
-
-    # iOS ignores the alpha and composites on black, so this one is flattened
-    # onto the page background. 176 = 16 x 11, centred in the 180 Apple asks
-    # for, so the upscale stays on whole pixels.
-    touch = Image.new('RGBA', (180, 180), ICON_BG)
-    big = up(11)
-    touch.paste(big, (2, 2), big)
+    big = icon.resize((w * n, h * n), Image.NEAREST)
+    touch = Image.new('RGBA', (180, 180), icon.getpixel((0, 0)))
+    touch.paste(big, ((180 - big.size[0]) // 2, (180 - big.size[1]) // 2), big)
     touch.save(os.path.join(OUT, 'apple-touch-icon.png'))
 
-    print('favicon     -> %dx%d master, ico 16/32/48, touch 180'
-          % (master, master))
-    return icon
+    print('favicon     -> %s master (kept), touch 180 (nearest x%d)'
+          % (icon.size, n))
+    return touch
 
 
 def build_props():
