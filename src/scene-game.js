@@ -274,7 +274,9 @@ FC8.GameScene = class extends Phaser.Scene {
       p: K.P, esc: K.ESC, m: K.M, enter: K.ENTER
     });
     this.input.addPointer(3);
-    this.touch = { left: false, right: false, jump: false, fire: false };
+    // the DOM deck in touch.js owns these; readInput just reads them
+    this.touch = FC8.touch.held;
+    this.seenTaps = { pause: FC8.touch.taps.pause, mute: FC8.touch.taps.mute };
     this.input_ = { left: false, right: false, up: false, down: false, run: false, jump: false, jumpDown: false, jumpPressed: false, firePressed: false };
     this.prevJump = false;
     this.prevFire = false;
@@ -286,26 +288,21 @@ FC8.GameScene = class extends Phaser.Scene {
       this.muteTag.setAlpha(m ? 1 : 0);
     }, this);
 
-    if (this.sys.game.device.input.touch && !this.sys.game.device.os.desktop) this.buildTouchPad();
   }
 
-  buildTouchPad() {
-    var W = FC8.W, H = FC8.H;
-    var mk = (x, y, w, h, label, prop) => {
-      var r = this.add.rectangle(x, y, w, h, 0xffffff, 0.14).setOrigin(0, 0)
-        .setScrollFactor(0).setDepth(120).setInteractive({ useHandCursor: true });
-      r.setStrokeStyle(1, 0xffffff, 0.35);
-      var t = this.add.bitmapText(x + w / 2 - label.length * 3, y + h / 2 - 4, 'pxfont', label)
-        .setScrollFactor(0).setDepth(121).setAlpha(0.7);
-      r.on('pointerdown', () => { this.touch[prop] = true; r.setFillStyle(0xffffff, 0.3); FC8.audio.unlock(); });
-      r.on('pointerup', () => { this.touch[prop] = false; r.setFillStyle(0xffffff, 0.14); });
-      r.on('pointerout', () => { this.touch[prop] = false; r.setFillStyle(0xffffff, 0.14); });
-      return { r: r, t: t };
-    };
-    mk(6, H - 50, 40, 40, '<', 'left');
-    mk(52, H - 50, 40, 40, '>', 'right');
-    mk(W - 52, H - 50, 46, 40, 'JUMP', 'jump');
-    mk(W - 104, H - 50, 46, 40, 'KICK', 'fire');
+  /** PAUSE and MUTE come from the deck as counters rather than events: a
+      scene restart cannot leave a stale listener behind, and the poll runs
+      before readInput's frozen check so PAUSE can also un-pause. */
+  pollDeck() {
+    var t = FC8.touch.taps;
+    if (t.pause !== this.seenTaps.pause) {
+      this.seenTaps.pause = t.pause;
+      this.togglePause();
+    }
+    if (t.mute !== this.seenTaps.mute) {
+      this.seenTaps.mute = t.mute;
+      this.muteTag.setAlpha(FC8.audio.toggleMute() ? 1 : 0);
+    }
   }
 
   readInput() {
@@ -321,7 +318,7 @@ FC8.GameScene = class extends Phaser.Scene {
     i.right = k.right.isDown || k.d.isDown || t.right;
     i.up = k.up.isDown || k.w.isDown;
     i.down = k.down.isDown || k.s.isDown;
-    i.run = k.shift.isDown;
+    i.run = k.shift.isDown || t.run;
     var jd = k.space.isDown || k.up.isDown || k.w.isDown || t.jump;
     i.jumpDown = jd;
     i.jumpPressed = jd && !this.prevJump;
@@ -795,6 +792,7 @@ FC8.GameScene = class extends Phaser.Scene {
 
   /* ============================================================= update == */
   update(time, delta) {
+    this.pollDeck();
     this.readInput();
     if (this.paused) return;
 

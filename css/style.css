@@ -161,6 +161,9 @@ body {
 }
 
 #about p { margin: 0 0 5px; }
+.about-short { display: none; }
+
+.about-made { margin-top: 7px; color: #7d76a0; }
 #about strong { color: #b4acd0; font-weight: 600; }
 #about em { color: #b4acd0; font-style: normal; }
 
@@ -177,6 +180,144 @@ body {
   #hints { display: none; }
   #shell { padding: 6px; gap: 6px; }
   #about { font-size: 9px; line-height: 1.6; }
+}
+
+/* ------------------------------------------------------- touch deck */
+/* Sized in CSS pixels, not game pixels: the old in-canvas pad scaled with
+   the canvas and landed at 35px on a phone, under the 44pt iOS and 48dp
+   Material minimums. 56px here with a 10px gutter between neighbours. */
+#pad {
+  --btn: 56px;
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 4px;
+  /* The browser must not treat a press as a scroll, pan or double-tap zoom,
+     or a held direction turns into a page gesture halfway through a run. */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#pad[hidden] { display: none; }
+
+.pad-group { display: flex; gap: 10px; }
+
+.pad-btn {
+  width: var(--btn);
+  height: var(--btn);
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--text);
+  background: var(--ink-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  touch-action: none;
+  cursor: pointer;
+}
+
+.pad-btn[data-hold="left"], .pad-btn[data-hold="right"] { font-size: 17px; }
+
+.pad-jump {
+  width: calc(var(--btn) * 1.35);
+  border-color: var(--grana);
+  background: #2a0a1b;
+  color: #ff9ec4;
+}
+
+.pad-kick { border-color: #2d3f66; color: #9fc0ff; }
+
+/* :active alone is unreliable once a pointer is captured, so touch.js adds
+   .is-down and removes it on pointerup. */
+.pad-btn.is-down, .pad-sys-btn.is-down {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--ink);
+}
+
+.pad-sys { display: flex; flex-direction: column; gap: 5px; }
+
+
+.pad-sys-btn {
+  min-width: 46px;
+  min-height: 26px;
+  font: inherit;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  touch-action: none;
+  cursor: pointer;
+}
+
+/* RUN is gameplay, so it reads louder than PAUSE/MUTE beneath it, and it
+   latches: .is-on persists until tapped again, unlike .is-down. */
+.pad-run {
+  min-height: 32px;
+  font-size: 10px;
+  color: var(--text);
+  background: var(--ink-2);
+}
+
+.pad-run.is-on {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--ink);
+  font-weight: 700;
+}
+/* Landscape on a phone: height is the scarce axis, not width. Stacked, the
+   RUN/PAUSE/MUTE column makes the deck 98px tall and pushes MUTE below the
+   fold at 667x375. Laid out in a row it is ~60px and the whole deck fits.
+   Width is plentiful here, so the three groups spread out: directions under
+   the left thumb, actions under the right, system buttons parked between
+   them where nothing time-critical lives. Gated on a coarse pointer as well,
+   so a merely short desktop window keeps the ordinary layout. */
+@media (orientation: landscape) and (max-height: 520px) and (pointer: coarse) {
+  #pad { max-width: none; padding: 2px 10px; }
+
+  .pad-sys {
+    flex-direction: row;
+    gap: 8px;
+    order: 2;             /* between the directions and the actions */
+  }
+
+  .pad-act { order: 3; }
+
+  /* side by side they can afford to be taller than the stacked column */
+  .pad-sys-btn { min-height: 34px; }
+
+  /* the stage floor is written for portrait; in landscape it would eat the
+     room the deck needs */
+  /* The canvas has to be allowed to give way here. #shell is normally
+     min-height:100vh, so the column just grows past a 320px-tall screen and
+     the deck ends up below the fold - the stage never shrinks because there
+     is no definite height to shrink against. Pin the shell to the viewport
+     and the stage flexes down; Phaser's FIT then scales the canvas to suit. */
+  #shell {
+    height: 100dvh;
+    min-height: 0;
+    padding: 4px 8px 6px;
+    gap: 5px;
+  }
+
+  #stage { flex: 1 1 auto; min-height: 0; }
+
+  /* The full disclaimer is 112px, which is a third of the screen here, so it
+     collapses to one line rather than disappearing. */
+  #about { padding-top: 5px; font-size: 9px; line-height: 1.5; }
+  #about p { display: none; margin: 0; }
+  #about p.about-short, #about p.about-made { display: block; }
+}
+@media (max-width: 360px) {
+  #pad { --btn: 50px; gap: 6px; }
+  .pad-group { gap: 6px; }
 }
 
 /* ---------------------------------------------- scoreboard name entry */

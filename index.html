@@ -23,6 +23,24 @@
       <div id="game"></div>
     </div>
 
+    <!-- Touch deck. Hidden until touch.js finds a coarse pointer, and placed
+         below the canvas so it never covers the playfield. -->
+    <div id="pad" hidden>
+      <div class="pad-group">
+        <button type="button" class="pad-btn" data-hold="left" aria-label="Move left">&#9664;</button>
+        <button type="button" class="pad-btn" data-hold="right" aria-label="Move right">&#9654;</button>
+      </div>
+      <div class="pad-group pad-act">
+        <button type="button" class="pad-btn pad-kick" data-hold="fire" aria-label="Kick">KICK</button>
+        <button type="button" class="pad-btn pad-jump" data-hold="jump" aria-label="Jump">JUMP</button>
+      </div>
+      <div class="pad-sys">
+        <button type="button" class="pad-sys-btn pad-run" data-latch="run">RUN</button>
+        <button type="button" class="pad-sys-btn" data-tap="pause">PAUSE</button>
+        <button type="button" class="pad-sys-btn" data-tap="mute">MUTE</button>
+      </div>
+    </div>
+
     <footer id="hints">
       <span><b>MOVE</b> &larr; &rarr; / A D</span>
       <span><b>JUMP</b> SPACE / &uarr;</span>
@@ -45,6 +63,8 @@
         affiliation or endorsement is implied. The rival characters are affectionate
         caricatures, not mockery.
       </p>
+      <p class="about-made">Developed with 💙🩷 in Slovakia using Claude Opus</p>
+      <p class="about-short">Fan project, for education only. Not affiliated; no rights owned. <a href="https://github.com/brano/fc8bit-super-y4m4l" target="_blank" rel="noopener noreferrer">Source</a></p>
       <p>
         <a href="https://github.com/brano/fc8bit-super-y4m4l" target="_blank" rel="noopener noreferrer">Source code on GitHub</a>
       </p>
@@ -62,6 +82,7 @@
   <script src="src/art.js"></script>
   <script src="src/tiles.js"></script>
   <script src="src/audio.js"></script>
+  <script src="src/touch.js"></script>
   <script src="src/scores.js"></script>
   <script src="src/levels.js"></script>
   <script src="src/entities.js"></script>

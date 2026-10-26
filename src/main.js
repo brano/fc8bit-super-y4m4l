@@ -23,7 +23,12 @@ window.FC8 = window.FC8 || {};
     disableContextMenu: true,
     scale: {
       mode: Phaser.Scale.FIT,
-      autoCenter: Phaser.Scale.CENTER_BOTH
+      // NO_CENTER, because #game is already a flex box that centres its
+      // child. CENTER_BOTH does its own centring by writing a margin-left
+      // onto the canvas, which lands on top of the flex centring and
+      // pushes the canvas off to the right by half the slack (116px at
+      // 667x375). CSS alone gets it right and restays right on resize.
+      autoCenter: Phaser.Scale.NO_CENTER
     },
     input: { activePointers: 4, keyboard: true, gamepad: false },
     physics: {
@@ -51,6 +56,9 @@ window.FC8 = window.FC8 || {};
     if (kb && kb.addCapture) kb.addCapture([37, 38, 39, 40, 32]);  // arrows + space
   });
 
+  // Mount the touch deck up front: the title screen needs it too.
+  FC8.touch.mount();
+
   function unlock() { FC8.audio.unlock(); }
   window.addEventListener('pointerdown', unlock, { once: true });
   window.addEventListener('keydown', unlock, { once: true });
@@ -58,7 +66,10 @@ window.FC8 = window.FC8 || {};
   // Phaser measures its parent once at boot; make sure it re-measures after
   // the page has settled and whenever the stage box changes.
   function refit() {
-    if (FC8.game && FC8.game.scale) FC8.game.scale.refresh();
+    // ResizeObserver fires once as soon as it observes, which can beat the
+    // scale manager to its canvas; refresh() then dereferences it and throws.
+    var g = FC8.game;
+    if (g && g.isBooted && g.scale && g.scale.canvas) g.scale.refresh();
   }
   window.addEventListener('resize', refit);
   window.addEventListener('load', refit);

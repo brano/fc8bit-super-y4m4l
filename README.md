@@ -84,7 +84,47 @@ before putting this anywhere public.
 | Pause | `P` or `Esc` |
 | Mute | `M` |
 
-On touch devices an on-screen pad appears automatically.
+### Touch
+
+On a touch device a control deck appears **below** the canvas: `◀` `▶`, KICK,
+JUMP, and a small RUN / PAUSE / MUTE column (the keyboard hints are hidden
+there, so those would otherwise be unreachable).
+
+RUN **latches** rather than being held: both thumbs are already on direction
+and jump, so a held sprint would need a third finger. Tap it on, tap it off;
+it turns gold while engaged and, being a setting rather than a press, it
+survives the window losing focus where the direction and jump buttons are
+released. Sprint is never *required* - the widest pit is 4 tiles and a walking
+jump clears 6.2 - so the latch is for pace, not for reaching anything.
+
+Three decisions worth keeping:
+
+* **Buttons, not gestures.** Jump height is set by how long the button is held
+  (see `Player.update`). A swipe is an impulse with no duration, so it can only
+  ever produce one jump height, and every measured hop in LEG 3 would be lost.
+* **DOM, not canvas.** The deck used to be drawn inside the canvas, so it
+  scaled with it: 40 game pixels came out at 35 CSS px on a 375px phone, under
+  both the 44pt iOS and 48dp Material minimums. In the DOM it is sized in real
+  pixels (56px) and never covers the playfield - the canvas only uses about a
+  quarter of a phone screen, so the room was already there.
+* **A press ends on `pointerup`, not `pointerout`.** The old pad cleared the
+  input when the pointer left the button, so a thumb roll stopped the player
+  dead mid-run. Each press now captures its pointer.
+
+In **landscape** the deck relays out: directions far left, actions far right,
+and RUN/PAUSE/MUTE in a single row between them. Stacked, that column makes
+the deck 98px tall and pushes MUTE below the fold on a 667x375 screen.
+
+Landscape also pins `#shell` to the viewport height. Normally it is
+`min-height: 100vh`, so on a short screen the column simply grows and the page
+scrolls - the stage never shrinks, because flex has no definite height to
+shrink against. Pinned, the stage flexes down and Phaser's FIT scales the
+canvas to whatever is left (323x187 at 568x320). The disclaimer collapses to a
+single line there, since the full one is 112px - a third of the screen.
+
+The deck is shown when the browser reports a coarse pointer, not from the user
+agent: Phaser's own `touch && !os.desktop` test misses an iPad, which reports
+a Macintosh UA and so matched `desktop` and got no controls at all.
 
 ## The campaign
 

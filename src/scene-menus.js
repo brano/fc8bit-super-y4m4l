@@ -174,6 +174,7 @@ FC8.TitleScene = class extends Phaser.Scene {
     this.input.keyboard.once('keydown-ENTER', go);
     this.input.keyboard.once('keydown-SPACE', go);
     this.input.once('pointerdown', go);
+    this.events.once('shutdown', FC8.touch.onceConfirm(go));
     this.input.keyboard.on('keydown-M', function () { FC8.audio.toggleMute(); });
 
     this.time.delayedCall(260, function () { FC8.audio.playMusic('y4song'); });
@@ -271,6 +272,7 @@ FC8.VictoryScene = class extends Phaser.Scene {
     this.time.delayedCall(1200, () => {
       this.input.keyboard.once('keydown-ENTER', back);
       this.input.once('pointerdown', back);
+      this.events.once('shutdown', FC8.touch.onceConfirm(back));
     });
   }
 };
@@ -313,6 +315,7 @@ FC8.GameOverScene = class extends Phaser.Scene {
     this.time.delayedCall(900, () => {
       this.input.keyboard.once('keydown-ENTER', back);
       this.input.once('pointerdown', back);
+      this.events.once('shutdown', FC8.touch.onceConfirm(back));
     });
   }
 };
