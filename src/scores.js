@@ -16,12 +16,14 @@ FC8.scores = (function () {
 
   var CFG = {
     base: DEV_HOST.test(window.location.hostname) ? 'http://localhost:5090' : API_PROD,
+
     /* Shared with the server so a score cannot simply be POSTed by hand.
        Worth being honest about what this is: the key ships inside this file,
        so anyone who opens devtools can sign their own payload. It stops casual
        fake posts, not a determined player. The checks that actually hold are
        server-side - score ceiling, name rules, rate limit, single-use nonce. */
-    secret: 'fc8-dev-secret-change-me',
+    secret: 'f941077338c4f341b71989160ded80b4ea5a240b59fef49751a773e4d63b3652',
+
     /* Generous because the API is deployed with auto_stop_machines: the first
        request after an idle spell has to boot the machine as well as answer,
        which 4s did not reliably cover. Nothing waits on this - the title card
