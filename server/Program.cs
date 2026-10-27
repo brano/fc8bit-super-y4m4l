@@ -199,7 +199,7 @@ app.Run();
 /// is in the client too. It raises lifting a working signature from "copy the
 /// string" to "read the code and re-run it", and nothing more.</summary>
 static string WindowKey(string secret, long ts) =>
-    Hmac(secret, "fc8-w" + (ts / SigningWindowSeconds).ToString(CultureInfo.InvariantCulture));
+    Hmac(secret, "supery4m4l" + (ts / SigningWindowSeconds).ToString(CultureInfo.InvariantCulture));
 
 static string Hmac(string key, string payload)
 {

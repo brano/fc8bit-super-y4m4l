@@ -79,7 +79,7 @@ FC8.scores = (function () {
       server-side: score ceiling, timestamp window, single-use nonce, rate
       limit. */
   function sign(canonical, ts) {
-    return hmacHex(CFG.secret, 'fc8-w' + Math.floor(ts / WINDOW))
+    return hmacHex(CFG.secret, 'supery4m4l' + Math.floor(ts / WINDOW))
       .then(function (windowKey) { return hmacHex(windowKey, canonical); });
   }
 
