@@ -26,6 +26,14 @@ var secret = cfg["Scores:Secret"] ?? "fc8-dev-secret-change-me";
 var dbPath = cfg["Scores:DbPath"] ?? "scores.db";
 var maxScore = cfg.GetValue("Scores:MaxScore", 500_000);
 var skewSeconds = cfg.GetValue("Scores:ClockSkewSeconds", 300);
+// Behind a reverse proxy, Connection.RemoteIpAddress is the proxy, so the
+// per-IP rate limit silently collapses into one bucket shared by everybody.
+// Naming a header here keys it on the real caller instead. Only set this to
+// a header the proxy writes itself and overwrites on the way in (on Fly,
+// Fly-Client-IP); trusting a caller-supplied one would hand out a free way
+// to dodge the limit by varying it.
+var clientIpHeader = cfg["Scores:ClientIpHeader"];
+
 var origins = cfg.GetSection("Scores:Origins").Get<string[]>()
               ?? ["http://localhost:5199", "http://127.0.0.1:5199"];
 
@@ -36,7 +44,7 @@ builder.Services.AddRateLimiter(o =>
 {
     o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     o.AddPolicy("submit", http => RateLimitPartition.GetFixedWindowLimiter(
-        http.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        ClientKey(http),
         _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = 10,
@@ -44,6 +52,17 @@ builder.Services.AddRateLimiter(o =>
             QueueLimit = 0
         }));
 });
+
+string ClientKey(HttpContext http)
+{
+    if (!string.IsNullOrEmpty(clientIpHeader)
+        && http.Request.Headers.TryGetValue(clientIpHeader, out var forwarded))
+    {
+        var ip = forwarded.ToString();
+        if (!string.IsNullOrWhiteSpace(ip)) return ip;
+    }
+    return http.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+}
 
 var app = builder.Build();
 app.UseCors();

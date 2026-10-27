@@ -1,0 +1,46 @@
+# FC8Bit Super Y4M4L - scoreboard API.
+#
+# Deployed as https://superyamal.fly.dev. Everything the
+# server reads is configuration, so Fly env vars drive it: ASP.NET maps
+# Scores__Secret -> "Scores:Secret", Scores__Origins__0 -> the first origin,
+# and so on.
+
+app = "superyamal"
+primary_region = "ams"
+
+[build]
+
+[env]
+  ASPNETCORE_URLS = "http://+:8080"
+  # On the volume, so scores survive a deploy.
+  Scores__DbPath = "/data/scores.db"
+  # Fly's proxy sets this itself and overwrites anything the caller sent, so
+  # it is safe to key the rate limiter on. Without it every request arrives
+  # from the proxy and the per-IP limit becomes one global 10/min bucket.
+  Scores__ClientIpHeader = "Fly-Client-IP"
+
+# SQLite on a single machine. Do not scale past one: the volume is attached
+# to one machine, and a second would get its own empty database.
+[[mounts]]
+  source = "superyamal_scores_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/api/health"
+
+# Smallest shared machine. It idles stopped, so compute is only billed while
+# a request is actually being served; the volume is the standing cost.
+[[vm]]
+  cpus = 1
+  memory = "256mb"

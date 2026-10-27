@@ -73,6 +73,61 @@ piece of work than a hash. Settings live under `Scores` in
 `server/appsettings.json`; change `Secret` (and the copy in `src/scores.js`)
 before putting this anywhere public.
 
+### Deploying the API to Fly.io
+
+Only `server/` is deployed; the game itself is static and goes elsewhere.
+`server/Dockerfile` and `server/fly.toml` are set up for it, and the build
+context is `server/`, so nothing from the game ends up in the image.
+
+Everything the server reads is configuration, and ASP.NET maps env vars onto
+it: `Scores__Secret` becomes `Scores:Secret`, `Scores__Origins__0` the first
+allowed origin.
+
+```bash
+cd server
+fly launch --no-deploy            # fly.toml already names the app: superyamal
+
+# SQLite needs somewhere that survives a deploy - a container filesystem
+# does not. Must be in the same region as primary_region.
+fly volumes create superyamal_scores_data --size 1 --region ams
+
+fly secrets set Scores__Secret="$(openssl rand -hex 32)"
+fly secrets set Scores__Origins__0="https://your-game-host"
+
+fly deploy
+fly scale count 1                 # see the warning below
+curl https://superyamal.fly.dev/api/health
+```
+
+The game already points at `https://superyamal.fly.dev` (`API_PROD` in
+`src/scores.js`); it uses the local server when the page is served from a dev
+host and the deployed one otherwise, so neither needs swapping by hand.
+
+Four things that will bite otherwise:
+
+* **Never scale past one machine.** The volume attaches to a single machine,
+  and SQLite cannot be shared across them - a second machine would quietly
+  serve its own empty database to half your players.
+* **CORS is a strict allow-list.** `Scores__Origins__0` must be the exact
+  origin the game is served from, scheme included. Miss it and every request
+  fails in the browser while `curl` works fine.
+* **`Scores__ClientIpHeader` matters behind the proxy.** Fly terminates the
+  connection, so without it every request looks like it came from the proxy
+  and the per-IP rate limit becomes one shared 10/min bucket for the whole
+  world. `fly.toml` sets it to `Fly-Client-IP`, which the proxy writes itself
+  and overwrites on the way in. Do not point it at a header a caller can set.
+* **It is sized for idle, not for load.** One shared vCPU, 256MB, and
+  `auto_stop_machines`, so the machine stops when nothing is asking and
+  compute is only billed while it serves; the volume is the standing cost.
+  The API measures ~50MB at boot and ~61MB after a burst of requests, so the
+  headroom is real. The trade is a cold start on the first request after an
+  idle spell - which is why the client timeout in `src/scores.js` is 8s and
+  not 4s. Nothing waits on that fetch, so a slow board never delays the title.
+
+* **The secret is still only obfuscation.** It ships in `src/scores.js`
+  whatever you set it to. Rotate it off the committed placeholder, but see the
+  honesty note above for what it actually buys.
+
 ## Controls
 
 | Action | Keys |

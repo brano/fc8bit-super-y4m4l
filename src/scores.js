@@ -6,15 +6,29 @@ window.FC8 = window.FC8 || {};
 FC8.scores = (function () {
   'use strict';
 
+  /* Where the API lives. Served from a dev host we talk to the local server,
+     anywhere else to the deployed one - otherwise a published game would call
+     localhost on the player's own machine and the board would always be empty.
+     Point API_PROD at your own Fly app, or override at runtime with
+     FC8.scores.configure({ base: '...' }). */
+  var API_PROD = 'https://superyamal.fly.dev';
+  var DEV_HOST = /^(localhost|127\.0\.0\.1|\[::1\]|.+\.localhost)$/i;
+
   var CFG = {
-    base: 'http://localhost:5090',
+    base: DEV_HOST.test(window.location.hostname) ? 'http://localhost:5090' : API_PROD,
     /* Shared with the server so a score cannot simply be POSTed by hand.
        Worth being honest about what this is: the key ships inside this file,
        so anyone who opens devtools can sign their own payload. It stops casual
        fake posts, not a determined player. The checks that actually hold are
        server-side - score ceiling, name rules, rate limit, single-use nonce. */
     secret: 'fc8-dev-secret-change-me',
-    timeout: 4000
+    /* Generous because the API is deployed with auto_stop_machines: the first
+       request after an idle spell has to boot the machine as well as answer,
+       which 4s did not reliably cover. Nothing waits on this - the title card
+       draws regardless and the board panel only appears if rows arrive - so a
+       longer ceiling costs nothing and just stops a cold start looking like
+       an empty leaderboard. */
+    timeout: 8000
   };
 
   function configure(opts) {

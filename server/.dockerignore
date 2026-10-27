@@ -1,0 +1,11 @@
+# Keep build output and any local database out of the image.
+bin/
+obj/
+*.db
+*.db-shm
+*.db-wal
+Dockerfile
+.dockerignore
+fly.toml
+Properties/launchSettings.json
+appsettings.Development.json
