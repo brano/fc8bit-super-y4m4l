@@ -1,3 +1,21 @@
+# Build context for the scoreboard API. Only server/ is copied into the image,
+# so everything the game is made of is excluded here as well - no reason to
+# upload sprite sheets and a vendored Phaser to the builder on every deploy.
+assets/
+css/
+docs/
+src/
+tools/
+vendor/
+index.html
+favicon.ico
+package.json
+README.md
+LICENSE
+.github/
+.git/
+.claude/
+
 node_modules/
 .DS_Store
 Thumbs.db
@@ -10,3 +28,10 @@ server/obj/
 server/*.db
 server/*.db-shm
 server/*.db-wal
+server/Properties/launchSettings.json
+server/appsettings.Development.json
+
+# the per-directory copies this replaces
+server/Dockerfile
+server/.dockerignore
+server/fly.toml

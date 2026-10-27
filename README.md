@@ -75,17 +75,22 @@ before putting this anywhere public.
 
 ### Deploying the API to Fly.io
 
-Only `server/` is deployed; the game itself is static and goes elsewhere.
-`server/Dockerfile` and `server/fly.toml` are set up for it, and the build
-context is `server/`, so nothing from the game ends up in the image.
+Only the API is deployed; the game itself is static and goes elsewhere. The
+`Dockerfile` and `fly.toml` live at the **repo root**, because that is where
+Fly deploys from - both from the dashboard and from `fly deploy`. Only
+`server/` is copied into the image, and `.dockerignore` keeps the game out of
+the build context too.
+
+Fly Launch originally generated these by scanning the root, finding
+`package.json` and assuming a Node.js app; they have been replaced with the
+.NET build. If you ever re-run `fly launch`, check what it writes over.
 
 Everything the server reads is configuration, and ASP.NET maps env vars onto
 it: `Scores__Secret` becomes `Scores:Secret`, `Scores__Origins__0` the first
 allowed origin.
 
 ```bash
-cd server
-fly launch --no-deploy            # fly.toml already names the app: superyamal
+# from the repo root; the app already exists, so no `fly launch`
 
 # SQLite needs somewhere that survives a deploy - a container filesystem
 # does not. Must be in the same region as primary_region.
