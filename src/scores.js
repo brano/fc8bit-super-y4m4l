@@ -54,13 +54,33 @@ FC8.scores = (function () {
     return s;
   }
 
-  /** HMAC-SHA256 over the canonical payload the server rebuilds and checks. */
-  function sign(canonical) {
+  /* How long one signing bucket lasts. Must match SigningWindowSeconds on the
+     server; the two derive the same key from the same timestamp. */
+  var WINDOW = 120;
+
+  function hmacHex(keyText, payload) {
     var enc = new TextEncoder();
     return window.crypto.subtle
-      .importKey('raw', enc.encode(CFG.secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
-      .then(function (key) { return window.crypto.subtle.sign('HMAC', key, enc.encode(canonical)); })
+      .importKey('raw', enc.encode(keyText), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
+      .then(function (k) { return window.crypto.subtle.sign('HMAC', k, enc.encode(payload)); })
       .then(hex);
+  }
+
+  /** HMAC-SHA256 over the canonical payload, under a key derived from the
+      timestamp rather than CFG.secret itself.
+
+      Be clear about what this is for: it is obfuscation, not secrecy. The
+      derivation sits right here in a file the browser downloads, so anyone
+      reading it can reproduce the key for any moment they like. What it does
+      buy is that a key copied out of this file is not enough on its own - a
+      signature, or a key, scraped from a request stops working once the bucket
+      rolls. It moves forging a score from 'copy the string' to 'read the code
+      and re-run it', and no further. The checks that actually hold are all
+      server-side: score ceiling, timestamp window, single-use nonce, rate
+      limit. */
+  function sign(canonical, ts) {
+    return hmacHex(CFG.secret, 'fc8-w' + Math.floor(ts / WINDOW))
+      .then(function (windowKey) { return hmacHex(windowKey, canonical); });
   }
 
   function nonce() {
@@ -86,7 +106,7 @@ FC8.scores = (function () {
     var nc = nonce();
     var canonical = [name, score, balls, level, ts, nc].join('|');
 
-    return sign(canonical).then(function (hash) {
+    return sign(canonical, ts).then(function (hash) {
       return withTimeout(fetch(CFG.base + '/api/scores', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

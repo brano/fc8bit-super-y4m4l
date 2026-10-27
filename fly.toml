@@ -22,6 +22,15 @@ primary_region = 'ams'
   # is safe to key the rate limiter on. Without it every request arrives from
   # the proxy and the per-IP limit becomes one global 10/min bucket.
   Scores__ClientIpHeader = 'Fly-Client-IP'
+  # Not secrets, so they live here rather than in `fly secrets` - config arrays
+  # merge BY INDEX, and setting only Scores__Origins__0 as a secret silently
+  # replaced appsettings' index 0 (localhost:5199) instead of adding to it.
+  # Listing every index here keeps the whole allow-list in one visible place.
+  # A Fly secret of the same name would override these, so unset any first:
+  #   fly secrets unset Scores__Origins__0
+  Scores__Origins__0 = 'https://brano.github.io'
+  Scores__Origins__1 = 'http://localhost:5199'
+  Scores__Origins__2 = 'http://127.0.0.1:5199'
 
 # SQLite on a single machine. Do not scale past one: the volume attaches to one
 # machine, and a second would quietly serve its own empty database.

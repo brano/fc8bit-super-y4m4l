@@ -129,6 +129,20 @@ Four things that will bite otherwise:
   idle spell - which is why the client timeout in `src/scores.js` is 8s and
   not 4s. Nothing waits on that fetch, so a slow board never delays the title.
 
+* **CORS is not access control.** It decides what a *browser on another site*
+  may read; it never stops the request running, so a plain `curl` reaches the
+  handler regardless. `POST /api/scores` therefore checks the `Origin` header
+  itself and answers 403 when it is missing or not on the list. That turns
+  away scripts that do not bother to send one - `-H "Origin: <allowed>"`
+  defeats it, so treat it as friction, not a control.
+* **Origins merge by index.** `Scores:Origins` is an array, and config
+  providers overlay it element by element, so setting only
+  `Scores__Origins__0` as a Fly secret *replaced* `appsettings.json`'s index 0
+  rather than adding to it - which is how `localhost:5199` quietly stopped
+  being allowed. The full list now lives in `fly.toml` under `[env]`, one
+  visible place. A Fly secret of the same name overrides it, so unset any
+  leftovers with `fly secrets unset Scores__Origins__0`.
+
 * **The secret is still only obfuscation.** It ships in `src/scores.js`
   whatever you set it to. Rotate it off the committed placeholder, but see the
   honesty note above for what it actually buys.

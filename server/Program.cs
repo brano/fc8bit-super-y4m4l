@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Globalization;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Data.Sqlite;
@@ -33,6 +34,7 @@ var skewSeconds = cfg.GetValue("Scores:ClockSkewSeconds", 300);
 // Fly-Client-IP); trusting a caller-supplied one would hand out a free way
 // to dodge the limit by varying it.
 var clientIpHeader = cfg["Scores:ClientIpHeader"];
+const long SigningWindowSeconds = 120;
 
 var origins = cfg.GetSection("Scores:Origins").Get<string[]>()
               ?? ["http://localhost:5199", "http://127.0.0.1:5199"];
@@ -100,8 +102,17 @@ app.MapGet("/api/scores", (int? limit) =>
 });
 
 // ---------------------------------------------------------------- write
-app.MapPost("/api/scores", (ScoreSubmission body) =>
+app.MapPost("/api/scores", (ScoreSubmission body, HttpContext http) =>
 {
+    // CORS decides what a browser is allowed to READ; it never stops the request
+    // running, so a plain curl sails past it and reaches this handler. Checking
+    // the header here is what actually refuses one. Worth being honest about the
+    // ceiling: anyone can pass -H "Origin: <allowed>", so this turns away scripts
+    // that do not bother, and nothing more.
+    var origin = http.Request.Headers.Origin.ToString();
+    if (string.IsNullOrEmpty(origin) || !origins.Contains(origin, StringComparer.OrdinalIgnoreCase))
+        return Results.Json(new { error = "origin not allowed" }, statusCode: StatusCodes.Status403Forbidden);
+
     var name = (body.Name ?? "").Trim().ToUpperInvariant();
     if (name.Length is < 1 or > 12 || !Regex.IsMatch(name, "^[A-Z0-9 .'-]+$"))
         return Results.BadRequest(new { error = "name must be 1-12 chars, letters/digits only" });
@@ -121,7 +132,11 @@ app.MapPost("/api/scores", (ScoreSubmission body) =>
 
     // canonical payload - the client must sign exactly this
     var canonical = $"{name}|{body.Score}|{body.Balls}|{body.Level}|{body.Ts}|{body.Nonce}";
-    var expected = Hmac(secret, canonical);
+    // The signing key is derived per time bucket rather than used directly, so a
+    // key lifted out of the client goes stale on its own. Ts is already pinned to
+    // within ClockSkewSeconds of now by the staleness check above, so deriving
+    // from the submitted Ts needs no window tolerance of its own.
+    var expected = Hmac(WindowKey(secret, body.Ts), canonical);
     if (!CryptographicOperations.FixedTimeEquals(
             Encoding.ASCII.GetBytes(expected),
             Encoding.ASCII.GetBytes((body.Hash ?? "").ToLowerInvariant())))
@@ -179,6 +194,12 @@ app.MapPost("/api/scores", (ScoreSubmission body) =>
 }).RequireRateLimiting("submit");
 
 app.Run();
+
+/// <summary>Per-bucket signing key. Obfuscation, not secrecy: the derivation
+/// is in the client too. It raises lifting a working signature from "copy the
+/// string" to "read the code and re-run it", and nothing more.</summary>
+static string WindowKey(string secret, long ts) =>
+    Hmac(secret, "fc8-w" + (ts / SigningWindowSeconds).ToString(CultureInfo.InvariantCulture));
 
 static string Hmac(string key, string payload)
 {
